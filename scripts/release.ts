@@ -1,47 +1,112 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import inquirer from "inquirer";
 
-const root = join(import.meta.dirname, "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const run = (cmd: string): string => execSync(cmd, { cwd: root, encoding: "utf-8" }).trim();
+const run = (command: string, args: string[] = []): string =>
+  execFileSync(command, args, { cwd: root, encoding: "utf-8" }).trim();
 
-const runOrFail = (cmd: string, label: string): void => {
+const runOrFail = (command: string, args: string[], label: string): void => {
   try {
-    execSync(cmd, { cwd: root, stdio: "inherit" });
+    execFileSync(command, args, { cwd: root, stdio: "inherit" });
   } catch {
     console.error(`\n✗ ${label} failed. Aborting release.`);
     process.exit(1);
   }
 };
 
-// -- Read current version --
+const readGitConfig = (key: string): string => {
+  try {
+    return run("git", ["config", "--get", key]).toLowerCase();
+  } catch {
+    return "";
+  }
+};
 
-const pkgPath = join(root, "package.json");
-const pkg: Record<string, unknown> = JSON.parse(readFileSync(pkgPath, "utf-8"));
-const current = pkg.version;
+type CliOptions = {
+  readonly yes: boolean;
+  readonly version: string | undefined;
+};
 
-if (typeof current !== "string") {
+const parseCliArgs = (args: readonly string[]): CliOptions => {
+  let yes = false;
+  let version: string | undefined;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === undefined) {
+      continue;
+    }
+
+    if (arg === "-y" || arg === "--yes") {
+      yes = true;
+      continue;
+    }
+
+    if (arg === "--version") {
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("-")) {
+        console.error("✗ --version requires a value.");
+        process.exit(1);
+      }
+      version = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--version=")) {
+      version = arg.slice("--version=".length);
+      continue;
+    }
+
+    if (arg === "-h" || arg === "--help") {
+      console.log(
+        "Usage: pnpm release [-y|--yes] [--version patch|minor|major|beta|x.y.z[-tag.n]]",
+      );
+      process.exit(0);
+    }
+
+    console.error(`✗ Unknown argument: ${arg}`);
+    process.exit(1);
+  }
+
+  return { yes, version };
+};
+
+const cliOptions = parseCliArgs(process.argv.slice(2));
+
+const pkgPath = path.join(root, "package.json");
+const parsedPackageJson: unknown = JSON.parse(readFileSync(pkgPath, "utf-8"));
+
+if (
+  typeof parsedPackageJson !== "object" ||
+  parsedPackageJson === null ||
+  Array.isArray(parsedPackageJson) ||
+  !("version" in parsedPackageJson) ||
+  typeof parsedPackageJson.version !== "string"
+) {
   console.error("✗ version field not found in package.json");
   process.exit(1);
 }
 
+const pkg = parsedPackageJson;
+const current = parsedPackageJson.version;
+
 console.log(`Current version: ${current}\n`);
 
-// -- Check clean working tree --
-
-const status = run("git status --porcelain");
+const status = run("git", ["status", "--porcelain"]);
 if (status !== "") {
   console.error("✗ Working tree is not clean. Commit or stash changes first.");
   process.exit(1);
 }
 
-// -- Check signing config --
-
-const gpgFormat = run("git config --get gpg.format").toLowerCase();
-const commitSign = run("git config --get commit.gpgsign").toLowerCase();
-const tagSign = run("git config --get tag.gpgsign").toLowerCase();
+const gpgFormat = readGitConfig("gpg.format");
+const commitSign = readGitConfig("commit.gpgsign");
+const tagSign = readGitConfig("tag.gpgsign");
 
 if (gpgFormat !== "ssh" || commitSign !== "true" || tagSign !== "true") {
   console.error("✗ Git signing is not configured. Required:");
@@ -50,8 +115,6 @@ if (gpgFormat !== "ssh" || commitSign !== "true" || tagSign !== "true") {
   console.error("  git config --global tag.gpgsign true");
   process.exit(1);
 }
-
-// -- Prompt version --
 
 const parseVersion = (
   v: string,
@@ -100,68 +163,123 @@ const bumpChoices = (v: string): { name: string; value: string }[] => {
   ];
 };
 
-const { version } = await inquirer.prompt<{ version: string }>([
-  {
-    type: "rawlist",
-    name: "version",
-    message: "Select release version:",
-    choices: [...bumpChoices(current), { name: "Custom", value: "custom" }],
-  },
-]);
+type VersionResolveResult =
+  | { readonly type: "ok"; readonly version: string }
+  | { readonly type: "error"; readonly message: string };
+
+const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+
+const resolveVersion = (versionSpec: string, fromVersion: string): VersionResolveResult => {
+  const { major, minor, patch, pre } = parseVersion(fromVersion);
+  const nextPatch = `${major}.${minor}.${patch + 1}`;
+
+  if (versionSpec === "patch") {
+    return {
+      type: "ok",
+      version: pre === undefined ? nextPatch : `${major}.${minor}.${patch}`,
+    };
+  }
+
+  if (versionSpec === "minor") {
+    return { type: "ok", version: `${major}.${minor + 1}.0` };
+  }
+
+  if (versionSpec === "major") {
+    return { type: "ok", version: `${major + 1}.0.0` };
+  }
+
+  if (versionSpec === "beta") {
+    if (pre === undefined) {
+      return { type: "ok", version: `${nextPatch}-beta.0` };
+    }
+
+    const preParts = pre.split(".");
+    const preTag = preParts[0] ?? "beta";
+    const preNum = Number(preParts[1] ?? 0);
+    return { type: "ok", version: `${major}.${minor}.${patch}-${preTag}.${preNum + 1}` };
+  }
+
+  if (semverPattern.test(versionSpec)) {
+    return { type: "ok", version: versionSpec };
+  }
+
+  return {
+    type: "error",
+    message:
+      "Unsupported --version value. Use patch, minor, major, beta, or an explicit semver like 1.2.3-beta.0.",
+  };
+};
+
+const promptVersion = async (): Promise<string> => {
+  const { version } = await inquirer.prompt<{ version: string }>([
+    {
+      type: "rawlist",
+      name: "version",
+      message: "Select release version:",
+      choices: [...bumpChoices(current), { name: "Custom", value: "custom" }],
+    },
+  ]);
+
+  if (version !== "custom") {
+    return version;
+  }
+
+  const { custom } = await inquirer.prompt<{ custom: string }>([
+    { type: "input", name: "custom", message: "Enter version:" },
+  ]);
+  return custom;
+};
 
 const nextVersion =
-  version === "custom"
-    ? (
-        await inquirer.prompt<{ custom: string }>([
-          { type: "input", name: "custom", message: "Enter version:" },
-        ])
-      ).custom
-    : version;
+  cliOptions.version === undefined
+    ? await promptVersion()
+    : (() => {
+        const result = resolveVersion(cliOptions.version, current);
+        if (result.type === "error") {
+          console.error(`✗ ${result.message}`);
+          process.exit(1);
+        }
+        return result.version;
+      })();
 
 const tag = `v${nextVersion}`;
 
-// -- Confirm --
-
-const { confirmed } = await inquirer.prompt<{ confirmed: boolean }>([
-  {
-    type: "confirm",
-    name: "confirmed",
-    message: `Release ${tag}? This will commit, tag (signed), and push.`,
-    default: false,
-  },
-]);
+const confirmed = cliOptions.yes
+  ? true
+  : (
+      await inquirer.prompt<{ confirmed: boolean }>([
+        {
+          type: "confirm",
+          name: "confirmed",
+          message: `Release ${tag}? This will commit, tag (signed), and push.`,
+          default: false,
+        },
+      ])
+    ).confirmed;
 
 if (!confirmed) {
   console.log("Aborted.");
   process.exit(0);
 }
 
-// -- Pre-release checks --
-
 console.log("\nRunning checks...\n");
-runOrFail("pnpm lint", "Lint");
-runOrFail("pnpm typecheck", "Typecheck");
-runOrFail("pnpm test", "Test");
-runOrFail("./scripts/lingui-check.sh", "Lingui check");
+runOrFail("pnpm", ["gatecheck", "check"], "Gatecheck");
+runOrFail("./scripts/lingui-check.sh", [], "Lingui check");
+runOrFail("pnpm", ["test"], "Test");
+runOrFail("pnpm", ["build"], "Build");
 console.log("\n✓ All checks passed.\n");
 
-// -- Update package.json --
-
-pkg.version = nextVersion;
-writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+const nextPkg = { ...pkg, version: nextVersion };
+writeFileSync(pkgPath, `${JSON.stringify(nextPkg, null, 2)}\n`);
 console.log(`\nUpdated package.json to ${nextVersion}`);
 
-// -- Signed commit + signed tag --
-
-run("git add package.json");
-runOrFail(`git commit -S -m "chore: release ${tag}"`, "Signed commit");
-runOrFail(`git tag -s ${tag} -m ${tag}`, "Signed tag");
+run("git", ["add", "package.json"]);
+runOrFail("git", ["commit", "-S", "-m", `chore: release ${tag}`], "Signed commit");
+runOrFail("git", ["tag", "-s", tag, "-m", tag], "Signed tag");
 
 console.log(`\nCreated signed commit and tag ${tag}`);
 
-// -- Push --
+runOrFail("git", ["push"], "Push commits");
+runOrFail("git", ["push", "--tags"], "Push tags");
 
-runOrFail("git push", "Push commits");
-runOrFail("git push --tags", "Push tags");
-
-console.log(`\n✓ Released ${tag} — GitHub Actions will publish to npm.`);
+console.log(`\n✓ Released ${tag} - GitHub Actions will publish to npm.`);
