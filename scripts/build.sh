@@ -7,7 +7,5 @@ if [ -d "dist" ]; then
 fi
 
 pnpm lingui:compile
-pnpm build:frontend
 pnpm build:backend
-
-cp -r ./src/server/lib/db/migrations ./dist
+pnpm build:frontend
