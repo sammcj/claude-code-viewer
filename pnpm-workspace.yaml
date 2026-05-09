@@ -7,3 +7,9 @@ allowBuilds:
   msgpackr-extract: false
 
 minimumReleaseAge: 2880
+
+overrides:
+  '@anthropic-ai/sdk': 0.95.1
+  seroval: 1.5.4
+  tar: 7.5.11
+  yaml: 2.8.4
