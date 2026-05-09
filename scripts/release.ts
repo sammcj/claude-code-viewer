@@ -265,6 +265,7 @@ if (!confirmed) {
 console.log("\nRunning checks...\n");
 runOrFail("pnpm", ["gatecheck", "check"], "Gatecheck");
 runOrFail("./scripts/lingui-check.sh", [], "Lingui check");
+runOrFail("pnpm", ["audit"], "Audit");
 runOrFail("pnpm", ["test"], "Test");
 runOrFail("pnpm", ["build"], "Build");
 console.log("\n✓ All checks passed.\n");
