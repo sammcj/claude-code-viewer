@@ -1,4 +1,8 @@
-minimumReleaseAge: 2880
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  esbuild: false
+  lefthook: true
+  msgpackr-extract: false
 
-onlyBuiltDependencies:
-  - lefthook
+minimumReleaseAge: 2880
