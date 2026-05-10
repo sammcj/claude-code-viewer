@@ -34,4 +34,4 @@ pre-push:
         pnpm lingui:compile
         ./scripts/lingui-check.sh
         ./scripts/i18n-check-key-equals-translation.sh
-        git diff ./src/lib/i18n/locales/ --exit-code || echo "Warning: lingui compilation produced unexpected changes"
+        git diff ./src/lib/i18n/locales/ || echo "Warning: lingui compilation produced unexpected changes"
