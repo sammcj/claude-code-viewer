@@ -227,6 +227,7 @@ export const ClaudeCodeSettingsForm: FC<ClaudeCodeSettingsFormProps> = ({
   disabled = false,
 }) => {
   const { i18n } = useLingui();
+  const systemPromptId = useId();
   const autoAllowBashId = useId();
   const allowUnsandboxedCommandsId = useId();
   const allowLocalBindingId = useId();
@@ -259,9 +260,9 @@ export const ClaudeCodeSettingsForm: FC<ClaudeCodeSettingsFormProps> = ({
     <div className="space-y-4 text-sm">
       {/* System Prompt */}
       <div className="space-y-1.5">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: Checkbox is a custom component that wraps input */}
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label htmlFor={systemPromptId} className="flex items-center gap-2 cursor-pointer">
           <Checkbox
+            id={systemPromptId}
             checked={formData.systemPrompt?.mode !== "none"}
             onCheckedChange={(checked) =>
               setValue("systemPrompt", {

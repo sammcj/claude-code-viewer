@@ -5,7 +5,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/CommandCompletion.tsx",
-        203
+        204
       ]
     ],
     "translation": "可用命令"
@@ -16,7 +16,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/FileCompletion.tsx",
-        253
+        254
       ]
     ],
     "translation": "可用的文件和目录"
@@ -1843,7 +1843,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        535
+        536
       ]
     ],
     "translation": "例如: 1.00"
@@ -1854,7 +1854,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        491
+        492
       ]
     ],
     "translation": "例如: 10"
@@ -1865,7 +1865,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        512
+        513
       ]
     ],
     "translation": "例如: 10000"
@@ -1876,7 +1876,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        423
+        424
       ]
     ],
     "translation": "例如: api.example.com, cdn.example.com"
@@ -3398,7 +3398,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        439
+        440
       ]
     ],
     "translation": "高级设置"
@@ -3420,7 +3420,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        286
+        287
       ]
     ],
     "translation": "禁用的工具"
@@ -3443,7 +3443,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        301
+        302
       ]
     ],
     "translation": "环境变量"
@@ -3668,7 +3668,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        525
+        526
       ]
     ],
     "translation": "最大预算 (USD)"
@@ -3680,7 +3680,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        503
+        504
       ]
     ],
     "translation": "最大思考令牌数"
@@ -3692,7 +3692,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        482
+        483
       ]
     ],
     "translation": "最大轮次"
@@ -3751,7 +3751,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        366
+        367
       ]
     ],
     "translation": "允许非沙盒命令"
@@ -3763,7 +3763,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        346
+        347
       ]
     ],
     "translation": "沙盒化时自动允许 Bash"
@@ -3775,7 +3775,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        317
+        318
       ]
     ],
     "translation": "沙盒"
@@ -3787,7 +3787,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        398
+        399
       ]
     ],
     "translation": "允许本地绑定"
@@ -3799,7 +3799,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        407
+        408
       ]
     ],
     "translation": "允许的域名 (逗号分隔)"
@@ -3811,7 +3811,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        376
+        377
       ]
     ],
     "translation": "网络设置"
@@ -3933,7 +3933,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        445
+        446
       ]
     ],
     "translation": "设置来源"
@@ -3945,7 +3945,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        275
+        276
       ]
     ],
     "translation": "包含 Claude Code 系统提示词"
@@ -4023,7 +4023,7 @@
     "origin": [
       [
         "src/web/app/projects/[projectId]/components/chatForm/ClaudeCodeSettingsForm.tsx",
-        578
+        579
       ],
       [
         "src/web/components/GlobalSidebar.tsx",

@@ -1,4 +1,4 @@
-import { type FC, type ReactNode, useCallback, useEffect } from "react";
+import { type FC, type KeyboardEvent, type ReactNode, useCallback, useEffect } from "react";
 import { useDragResize } from "@/web/hooks/useDragResize";
 import { useIsMobile } from "@/web/hooks/useIsMobile";
 import { useLeftPanelActions, useLeftPanelState } from "@/web/hooks/useLayoutPanels";
@@ -30,6 +30,21 @@ export const ResizableSidebar: FC<ResizableSidebarProps> = ({ children, classNam
   const { isResizing, handleMouseDown } = useDragResize({
     onResize: handleResize,
   });
+
+  const handleResizeKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      const step = event.shiftKey ? 5 : 1;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setLeftPanelWidth(Math.max(0, leftPanelWidth - step));
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setLeftPanelWidth(Math.min(50, leftPanelWidth + step));
+      }
+    },
+    [leftPanelWidth, setLeftPanelWidth],
+  );
 
   useEffect(() => {
     if (isResizing) {
@@ -81,9 +96,15 @@ export const ResizableSidebar: FC<ResizableSidebarProps> = ({ children, classNam
       {isLeftPanelOpen && (
         <div
           role="separator"
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={50}
+          aria-valuenow={leftPanelWidth}
+          tabIndex={0}
           className="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize hover:bg-primary/40 active:bg-primary transition-colors z-10"
           style={{ pointerEvents: "auto" }}
           onMouseDown={handleMouseDown}
+          onKeyDown={handleResizeKeyDown}
         />
       )}
     </div>

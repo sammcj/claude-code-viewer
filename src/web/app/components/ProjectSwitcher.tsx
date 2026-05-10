@@ -61,7 +61,7 @@ export const ProjectSwitcher: FC<ProjectSwitcherProps> = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          // oxlint-disable-next-line jsx-a11y/role-has-required-aria-props -- shadcn-ui Combobox pattern
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/role-has-required-aria-props -- shadcn-ui Combobox pattern
           role="combobox"
           aria-expanded={open}
           className="flex items-center gap-1.5 h-7 text-foreground/70 font-medium truncate hover:text-foreground transition-colors rounded px-2 hover:bg-muted/50"

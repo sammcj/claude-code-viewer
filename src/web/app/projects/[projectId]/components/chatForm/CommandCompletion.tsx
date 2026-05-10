@@ -199,6 +199,7 @@ export const CommandCompletion = forwardRef<CommandCompletionRef, CommandComplet
               ref={listRef}
               className="absolute z-50 w-full bg-popover border border-border rounded-lg shadow-xl overflow-hidden"
               style={{ height: "15rem" }}
+              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- Completion popup uses ARIA listbox semantics, not a native select.
               role="listbox"
               aria-label={i18n._("Available commands")}
             >
@@ -226,6 +227,7 @@ export const CommandCompletion = forwardRef<CommandCompletionRef, CommandComplet
                         onClick={() => handleCommandSelect(command)}
                         onMouseEnter={() => setSelectedIndex(index)}
                         role="option"
+                        tabIndex={-1}
                         aria-selected={index === selectedIndex}
                         aria-label={`Command: /${command.name}`}
                         title={command.description ?? `/${command.name}`}
