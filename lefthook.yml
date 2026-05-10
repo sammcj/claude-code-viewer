@@ -30,8 +30,10 @@ pre-push:
 
     lingui-check:
       run: |
-        pnpm lingui:extract
-        pnpm lingui:compile
         ./scripts/lingui-check.sh
+        pnpm lingui:compile
         ./scripts/i18n-check-key-equals-translation.sh
-        git diff ./src/lib/i18n/locales/ || echo "Warning: lingui compilation produced unexpected changes"
+        if ! git --no-pager diff --exit-code -- src/lib/i18n/locales/; then
+          echo "Error: Lingui extraction/compilation produced unexpected changes. Please commit the updated locale files."
+          exit 1
+        fi
