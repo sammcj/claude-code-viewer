@@ -1,6 +1,10 @@
 import { useStore } from "jotai";
 import { useEffect, useRef } from "react";
-import { rightPanelActiveTabAtom, rightPanelOpenAtom } from "@/lib/atoms/rightPanel";
+import {
+  rightPanelActiveTabAtom,
+  rightPanelOpenAtom,
+  rightPanelOpenPreferenceAtom,
+} from "@/lib/atoms/rightPanel";
 import { Route } from "@/web/routes/projects/$projectId/session";
 import { getIsMobileSync } from "./getIsMobileSync";
 import { resolveRightPanelOpen } from "./resolveRightPanelOpen";
@@ -9,11 +13,11 @@ import { useIsMobile } from "./useIsMobile";
 /**
  * Bidirectionally syncs jotai right panel atoms with TanStack Router search params.
  *
- * - On mount: initializes atoms from URL search params (with device-specific defaults for undefined)
+ * - On mount: URL search params override stored preferences when explicitly present
  * - On atom change: updates URL (replace, no navigation)
- * - On search param change (e.g. browser back/forward): updates atoms
+ * - On search param change (e.g. browser back/forward): updates atoms only for explicit params
  *
- * Device-specific defaults (applied only when URL `rightPanel` is undefined):
+ * When URL `rightPanel` is undefined and no stored preference exists, a device-specific default is used:
  * - PC (width > 767px): default open (true)
  * - Mobile (width <= 767px): default closed (false)
  */
@@ -29,7 +33,7 @@ export const useSyncRightPanelWithSearchParams = () => {
   // Track if initial sync has been done to avoid applying defaults after explicit user action
   const hasInitializedRef = useRef(false);
 
-  // On mount: initialize atoms from URL (with device-specific defaults)
+  // On mount: initialize atoms from explicit URL params, falling back to stored preferences.
   useEffect(() => {
     isSyncingFromUrl.current = true;
 
@@ -37,9 +41,15 @@ export const useSyncRightPanelWithSearchParams = () => {
     // For subsequent updates (e.g., browser back/forward), use current isMobile value
     const effectiveIsMobile = hasInitializedRef.current ? isMobile : getIsMobileSync();
 
-    const effectiveOpen = resolveRightPanelOpen(search.rightPanel, effectiveIsMobile);
-    store.set(rightPanelOpenAtom, effectiveOpen);
-    store.set(rightPanelActiveTabAtom, search.rightPanelTab);
+    if (search.rightPanel !== undefined) {
+      store.set(rightPanelOpenAtom, search.rightPanel);
+    } else if (store.get(rightPanelOpenPreferenceAtom).status === "unset") {
+      store.set(rightPanelOpenAtom, resolveRightPanelOpen(undefined, effectiveIsMobile));
+    }
+
+    if (search.rightPanelTab !== undefined) {
+      store.set(rightPanelActiveTabAtom, search.rightPanelTab);
+    }
 
     hasInitializedRef.current = true;
     isSyncingFromUrl.current = false;

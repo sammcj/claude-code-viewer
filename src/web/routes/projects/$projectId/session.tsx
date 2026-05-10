@@ -12,7 +12,7 @@ const sessionSearchSchema = z.object({
   sessionId: z.string().optional(),
   tab: tabSchema.optional().default("sessions"),
   rightPanel: z.boolean().optional(),
-  rightPanelTab: rightPanelTabSchema.optional().default("explorer"),
+  rightPanelTab: rightPanelTabSchema.optional(),
 });
 
 const RouteComponent = () => {

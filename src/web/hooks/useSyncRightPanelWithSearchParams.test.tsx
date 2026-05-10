@@ -1,6 +1,10 @@
 import { createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { rightPanelActiveTabAtom, rightPanelOpenAtom } from "@/lib/atoms/rightPanel";
+import {
+  rightPanelActiveTabAtom,
+  rightPanelOpenAtom,
+  rightPanelOpenPreferenceAtom,
+} from "@/lib/atoms/rightPanel";
 
 /**
  * Integration tests for useSyncRightPanelWithSearchParams hook.
@@ -212,22 +216,40 @@ describe("useSyncRightPanelWithSearchParams", () => {
       expect(store.get(rightPanelOpenAtom)).toBe(true);
     });
 
-    it("should apply device-specific default when navigating to URL without rightPanel param", () => {
-      // On PC, navigating to a URL without rightPanel should default to open
+    it("should apply device-specific default only before a right panel preference exists", () => {
+      // On PC, a URL without rightPanel should default to open when no preference exists
       vi.stubGlobal("window", { innerWidth: 1024 });
       const urlRightPanel = undefined;
       const isMobile = false;
-      const effectiveOpen = urlRightPanel ?? !isMobile;
-      store.set(rightPanelOpenAtom, effectiveOpen);
+      const openPreference = store.get(rightPanelOpenPreferenceAtom);
+      if (urlRightPanel !== undefined) {
+        store.set(rightPanelOpenAtom, urlRightPanel);
+      } else if (openPreference.status === "unset") {
+        store.set(rightPanelOpenAtom, !isMobile);
+      }
       expect(store.get(rightPanelOpenAtom)).toBe(true);
 
-      // On Mobile, navigating to a URL without rightPanel should default to closed
-      vi.stubGlobal("window", { innerWidth: 375 });
-      const mobileUrlRightPanel = undefined;
-      const isMobileDevice = true;
-      const mobileEffectiveOpen = mobileUrlRightPanel ?? !isMobileDevice;
-      store.set(rightPanelOpenAtom, mobileEffectiveOpen);
+      // After the user closes the panel, another URL without rightPanel should preserve it
+      store.set(rightPanelOpenAtom, false);
+      const nextUrlRightPanel = undefined;
+      const nextOpenPreference = store.get(rightPanelOpenPreferenceAtom);
+      if (nextUrlRightPanel !== undefined) {
+        store.set(rightPanelOpenAtom, nextUrlRightPanel);
+      } else if (nextOpenPreference.status === "unset") {
+        store.set(rightPanelOpenAtom, !isMobile);
+      }
       expect(store.get(rightPanelOpenAtom)).toBe(false);
+    });
+
+    it("should preserve active tab preference when navigating to URL without rightPanelTab param", () => {
+      store.set(rightPanelActiveTabAtom, "git");
+
+      const nextUrlRightPanelTab = undefined;
+      if (nextUrlRightPanelTab !== undefined) {
+        store.set(rightPanelActiveTabAtom, nextUrlRightPanelTab);
+      }
+
+      expect(store.get(rightPanelActiveTabAtom)).toBe("git");
     });
   });
 });
