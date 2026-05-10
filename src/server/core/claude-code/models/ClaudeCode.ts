@@ -58,7 +58,8 @@ const resolveClaudeCodePath = Effect.gen(function* () {
         output
           .split("\n")
           .map((line) => line.trim())
-          .filter((line) => line !== "") ?? [],
+          .filter((line) => line !== "")
+          .map((line) => (path.isAbsolute(line) ? line : path.resolve(line))) ?? [],
     ),
     Effect.map((paths) =>
       uniq(paths).toSorted((a, b) => {

@@ -42,10 +42,11 @@
     "prepare": "lefthook install"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "2.1.90"
+    "@anthropic-ai/claude-code": "2.1.90",
+    "@replit/ruspty": "3.7.0"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.2.133",
+    "@anthropic-ai/claude-agent-sdk": "0.2.90",
     "@anthropic-ai/sdk": "0.95.1",
     "@effect/cluster": "0.58.2",
     "@effect/experimental": "0.60.0",
@@ -76,7 +77,6 @@
     "@radix-ui/react-slot": "1.2.4",
     "@radix-ui/react-tabs": "1.1.13",
     "@radix-ui/react-tooltip": "1.2.8",
-    "@replit/ruspty": "3.7.0",
     "@tailwindcss/postcss": "4.2.4",
     "@tailwindcss/vite": "4.2.4",
     "@tanstack/react-devtools": "0.10.2",
